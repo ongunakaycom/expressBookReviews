@@ -29,6 +29,29 @@ app.use("/customer/auth/*", (req, res, next) => {
     next();
 });
 
+// Async function to simulate fetching all books from a database or another async operation
+async function getAllBooksAsync(callback) {
+    // Simulating an async operation (e.g., database call)
+    setTimeout(() => {
+        callback(null, books); // Pass null for error, and books data as result
+    }, 1000); // Simulate a delay of 1 second
+}
+
+// ✅ GET all books route using async callback
+app.get('/books', async (req, res) => {
+    try {
+        // Use the async function to fetch books
+        getAllBooksAsync((err, allBooks) => {
+            if (err) {
+                return res.status(500).json({ message: 'Internal server error' });
+            }
+            res.json(allBooks); // Return all books if successful
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'An error occurred while fetching books.' });
+    }
+});
+
 // ✅ GET books by author
 app.get('/books/author/:name', (req, res) => {
     const authorName = req.params.name;
@@ -93,6 +116,27 @@ app.put('/books/review/:id', (req, res) => {
     // Add or update the review
     books[bookId].reviews[reviewId] = reviewContent;
     res.json({ message: 'Review added/updated successfully.', reviews: books[bookId].reviews });
+});
+
+// Add/Delete a review (DELETE request)
+app.delete('/books/review/:bookId/:reviewId', (req, res) => {
+    const { bookId, reviewId } = req.params;
+
+    // Check if the book exists
+    const book = books[bookId];
+    if (!book) {
+        return res.status(404).json({ message: 'Book not found' });
+    }
+
+    // Check if the review exists for the book
+    if (!book.reviews[reviewId]) {
+        return res.status(404).json({ message: 'Review not found' });
+    }
+
+    // Delete the review
+    delete book.reviews[reviewId];
+
+    return res.status(200).json({ message: 'Review deleted successfully' });
 });
 
 // Register customer and general routes
