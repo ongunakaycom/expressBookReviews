@@ -46,10 +46,20 @@ regd_users.post("/login", (req, res) => {
     }
 });
 
-// Add a book review (placeholder)
-regd_users.put("/auth/review/:isbn", (req, res) => {
-    // Write your code here
-    return res.status(300).json({ message: "Yet to be implemented" });
+// Add or modify a book review
+regd_users.put("/review/:isbn", (req, res) => {
+    const { isbn } = req.params;
+    const { reviewId, reviewContent } = req.body; // Expecting reviewId and reviewContent in the request body
+
+    // Check if the book exists
+    const book = books[isbn];
+    if (!book) {
+        return res.status(404).json({ message: 'Book not found.' });
+    }
+
+    // Add or modify the review
+    book.reviews[reviewId] = reviewContent; // Add or update the review
+    return res.status(200).json({ message: 'Review added/modified successfully.' });
 });
 
 module.exports.authenticated = regd_users;
